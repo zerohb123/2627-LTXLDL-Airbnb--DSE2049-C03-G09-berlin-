@@ -1,0 +1,18 @@
+# Tuyệt đối không đẩy dữ liệu thô lên Git
+data/raw/
+
+# Môi trường ảo Python
+venv/
+.venv/
+env/
+
+# Cache
+__pycache__/
+*.pyc
+
+# Khóa API
+.env
+
+# File hệ thống
+.DS_Store
+Thumbs.db
