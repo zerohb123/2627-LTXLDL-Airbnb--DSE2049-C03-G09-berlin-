@@ -1,0 +1,33 @@
+city: berlin
+country: germany
+region: be
+currency: EUR
+data_root: "germany/be/berlin"
+base_url: "https://data.insideairbnb.com/germany/be/berlin"
+
+# 4 mốc snapshot bắt buộc của Berlin
+snapshots:
+  - "2025-09-23"
+  - "2025-12-27"
+  - "2026-03-28"
+  - "2026-06-26"
+
+# Đường dẫn đến các file danh sách ID của nhóm
+filter_files:
+  listings: "configs/berlin_listings.csv"
+  reviews: "configs/berlin_reviews.csv"
+  areas: "configs/berlin_areas.csv"
+
+# Tham số QA và KPI
+qa:
+  nights_cap: 365
+  dedupe_keys: ["id", "last_scraped"]
+  area_col: "analysis_area"
+
+# Cấu hình LLM
+llm:
+  provider: gemini
+  sample_size: 1000
+  labeled_sample_size: 100
+  aspects: ["vị trí", "sạch sẽ", "chủ nhà", "giá trị", "tiện nghi", "độ ồn", "an toàn"]
+  cache: "data/processed/llm_cache.json"
