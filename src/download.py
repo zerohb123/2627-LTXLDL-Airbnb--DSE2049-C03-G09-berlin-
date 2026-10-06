@@ -1,10 +1,10 @@
-import os
-import gzip
-import shutil
-import requests
-import yaml
-import pandas as pd
-from tqdm import tqdm
+import os            # Thao tác với hệ điều hành: tạo thư mục, kiểm tra file tồn tại
+import gzip          # Hỗ trợ giải nén file định dạng .gz
+import shutil        # Tiện ích sao chép / di chuyển file hệ thống
+import requests      # Gửi yêu cầu HTTP để tải file từ Internet
+import yaml          # Đọc dữ liệu từ file định dạng .yaml (PyYAML)
+import pandas as pd  # Thư viện xử lý và phân tích dữ liệu bảng
+from tqdm import tqdm# Hiển thị thanh tiến trình (progress bar) khi tải file
 
 def download_file(url, dest_path):
     """Tải file từ URL về dest_path với thanh tiến trình."""
