@@ -105,7 +105,16 @@ def download_and_filter(config_path="configs/berlin.yaml"):
         df_filtered_r.to_csv(processed_r_path, index=False)
         print(f"     Lưu: {processed_r_path} ({len(df_filtered_r)} dòng)")
 
-    # 3. Tách bộ dữ liệu mẫu LLM và nhãn tay (100 mẫu)
+    # 4. Tải tệp bản đồ GeoJSON (lấy theo mốc snapshot mới nhất)
+    latest_snap = snapshots[-1]
+    url_geojson = f"{base_url}/{latest_snap}/visualisations/neighbourhoods.geojson"
+    raw_geojson_path = "data/raw/neighbourhoods.geojson"
+    try:
+        download_file(url_geojson, raw_geojson_path)
+    except Exception as e:
+        print(f"  [Cảnh báo] Không tải được GeoJSON từ {url_geojson}: {e}")
+
+    # 5. Tách bộ dữ liệu mẫu LLM và nhãn tay (100 mẫu)
     print("\n>>> 3. Đang tạo bộ dữ liệu mẫu gán nhãn tay...")
     if 'Nhãn tay' in df_filter_review.columns:
         labeled_ids = set(df_filter_review[df_filter_review['Nhãn tay'] == 'x'][review_id_col].astype(int))
@@ -124,4 +133,7 @@ def download_and_filter(config_path="configs/berlin.yaml"):
     print("\n>>> HOÀN THÀNH TẢI VÀ LỌC DỮ LIỆU THÀNH CÔNG!")
 
 if __name__ == "__main__":
-    download_and_filter()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="configs/berlin.yaml")
+    download_and_filter(parser.parse_args().config)
