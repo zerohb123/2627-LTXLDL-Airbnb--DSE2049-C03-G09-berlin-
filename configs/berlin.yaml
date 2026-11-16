@@ -24,9 +24,9 @@ qa:
   dedupe_keys: ["id", "last_scraped"]
   area_col: "analysis_area"
 
-# Cấu hình LLM
 llm:
   provider: gemini
+  model: "gemini-3.5-flash-lite"
   sample_size: 1000
   labeled_sample_size: 100
   aspects: ["vị trí", "sạch sẽ", "chủ nhà", "giá trị", "tiện nghi", "độ ồn", "an toàn"]
