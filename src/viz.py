@@ -11,7 +11,7 @@ def format_k(x, pos):
 
 def create_visualizations():
     kpi_path = "reports/kpi.csv"
-    out_dir = "reports/figures"
+    out_dir = "figures"
     geojson_path = "data/raw/neighbourhoods.geojson"
 
     if not os.path.exists(kpi_path):

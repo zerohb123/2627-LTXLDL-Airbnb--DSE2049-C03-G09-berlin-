@@ -16,7 +16,7 @@ def run_llm_analysis(config_path="configs/berlin.yaml"):
         raise FileNotFoundError(f"Không tìm thấy {results_path}. Hãy chạy src/llm.py trước.")
 
     df = pd.read_csv(results_path)
-    os.makedirs("reports/figures", exist_ok=True)
+    os.makedirs("figures", exist_ok=True)
 
     # 1. Thống kê phân bố cảm xúc tổng thể
     sent_counts = df["sentiment_pred"].value_counts().reindex(["positive", "neutral", "negative"], fill_value=0)
@@ -61,7 +61,7 @@ def run_llm_analysis(config_path="configs/berlin.yaml"):
         plt.text(w + 8, bar.get_y() + bar.get_height() / 2, f"{int(w)} ({pct}%)", va="center", fontsize=9)
     plt.xlim(0, df_plot["total_mentions"].max() * 1.18)
     plt.tight_layout()
-    plt.savefig("reports/figures/llm_aspect_frequency.png", dpi=200)
+    plt.savefig("figures/llm_aspect_frequency.png", dpi=200)
     plt.close()
 
     # 4. Vẽ Biểu đồ 2: Cơ cấu cảm xúc (Positive / Neutral / Negative) theo từng khía cạnh
@@ -79,7 +79,7 @@ def run_llm_analysis(config_path="configs/berlin.yaml"):
     plt.legend(loc="lower right")
     plt.xlim(0, 100)
     plt.tight_layout()
-    plt.savefig("reports/figures/llm_aspect_sentiment_breakdown.png", dpi=200)
+    plt.savefig("figures/llm_aspect_sentiment_breakdown.png", dpi=200)
     plt.close()
 
     print(">>> Đã xuất bảng tổng hợp và 2 biểu đồ tại:")
