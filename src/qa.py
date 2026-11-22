@@ -1,5 +1,6 @@
 import os
 import re
+import argparse
 import yaml
 import numpy as np
 import pandas as pd
@@ -34,8 +35,10 @@ def run_qa(config_path="configs/berlin.yaml"):
         config = yaml.safe_load(f)
 
     snapshots = config["snapshots"]
-    nights_cap = config.get("qa", {}).get("nights_cap", 365)
-    dedupe_keys = config.get("qa", {}).get("dedupe_keys", ["id", "last_scraped"])
+    qa_cfg = config.get("qa", {})
+    nights_cap = qa_cfg.get("nights_cap", config.get("min_nights_cap", 365))
+    price_max = qa_cfg.get("price_max", config.get("price_max_eur", 2000.0))
+    dedupe_keys = qa_cfg.get("dedupe_keys", config.get("dedupe_keys", ["id", "last_scraped"]))
 
     os.makedirs("data/clean", exist_ok=True)
     os.makedirs("reports", exist_ok=True)
@@ -61,21 +64,19 @@ def run_qa(config_path="configs/berlin.yaml"):
             df_l = df_l.drop_duplicates(subset=existing_keys)
         dedup_dropped = initial_rows - len(df_l)
 
-        # 2. Xử lý giá tiền (Price)
+        # 2. Xử lý giá tiền (Price) & ghi nhận KPI trước QA
         df_l['price_clean'] = np.nan
         if 'price' in df_l.columns:
             df_l['price_clean'] = df_l['price'].apply(clean_currency)
 
-        # Kiểm tra xem listings có giá hợp lệ hay không
+        median_price_before = round(float(df_l['price_clean'].median()), 2) if df_l['price_clean'].notna().any() else np.nan
+
         valid_price_count = df_l['price_clean'].notna().sum()
-        
-        # Nếu listings bị rỗng giá, tìm trong calendar
         if valid_price_count <= 50 and os.path.exists(c_path):
             print(f"  [Lưu ý] Đang tìm kiếm giá từ bảng calendar cho mốc {snap}...")
             df_c = pd.read_csv(c_path, low_memory=False, dtype=str)
             df_c['listing_id'] = df_c['listing_id'].astype(str).str.strip()
-            
-            # Tìm xem có cột giá nào tồn tại không
+
             price_col = None
             for candidate in ['price', 'adjusted_price', 'daily_price', 'rate']:
                 if candidate in df_c.columns:
@@ -91,29 +92,32 @@ def run_qa(config_path="configs/berlin.yaml"):
 
         nan_price_before = int(df_l['price_clean'].isna().sum())
 
-        # Điền khuyết nội bộ mốc nếu có ít nhất một phần dữ liệu giá
+        # Cắt ngoại lai giá quá cao trước khi tính trung vị nội bộ
+        price_outliers_capped = int((df_l['price_clean'] > price_max).sum())
+        df_l['price_clean'] = df_l['price_clean'].clip(lower=1.0, upper=price_max)
+
+        # Điền khuyết nội bộ mốc nếu có dữ liệu giá
         if df_l['price_clean'].notna().sum() > 0:
             median_group = df_l.groupby(['room_type', 'analysis_area'])['price_clean'].transform('median')
             overall_median = df_l['price_clean'].median()
             df_l['price_clean'] = df_l['price_clean'].fillna(median_group).fillna(overall_median)
 
-            # Cập nhật vào kho median dự phòng
             for (rt, area), sub in df_l.groupby(['room_type', 'analysis_area']):
                 med = sub['price_clean'].median()
                 if pd.notna(med):
                     fallback_medians[(rt, area)] = med
 
-        # Điền khuyết liên mốc (mượn median từ mốc có dữ liệu cho mốc rỗng hoàn toàn)
+        # Điền khuyết liên mốc nếu mốc hiện tại rỗng giá hoàn toàn
         if df_l['price_clean'].isna().any() and fallback_medians:
             print(f"  [Điền khuyết liên mốc] Áp dụng giá trung vị chuẩn cho mốc {snap}...")
             for (rt, area), med in fallback_medians.items():
                 mask = (df_l['room_type'] == rt) & (df_l['analysis_area'] == area) & (df_l['price_clean'].isna())
                 df_l.loc[mask, 'price_clean'] = med
-            # Điền giá trị trung vị toàn cục nếu còn sót
             global_fallback = np.median(list(fallback_medians.values())) if fallback_medians else 100.0
             df_l['price_clean'] = df_l['price_clean'].fillna(global_fallback)
 
         nan_price_after = int(df_l['price_clean'].isna().sum())
+        median_price_after = round(float(df_l['price_clean'].median()), 2) if df_l['price_clean'].notna().any() else np.nan
 
         # 3. Chuẩn hóa phòng tắm (bathrooms)
         if 'bathrooms_text' in df_l.columns:
@@ -129,27 +133,32 @@ def run_qa(config_path="configs/berlin.yaml"):
                 df_l[col] = pd.to_numeric(df_l[col], errors='coerce').fillna(1)
                 df_l[col] = df_l[col].clip(upper=nights_cap)
 
-        # Lưu file dữ liệu sạch
         clean_l_path = f"data/clean/{snap}_listings.csv"
-        df_l.to_csv(clean_l_path, index=False)
+        df_l.to_csv(clean_l_path, index=False, encoding="utf-8")
         print(f"  -> Đã lưu dữ liệu sạch: {clean_l_path}")
 
         qa_summary.append({
             "snapshot": snap,
             "initial_rows": initial_rows,
+            "final_rows": len(df_l),
             "dedup_dropped": dedup_dropped,
             "nan_price_before": nan_price_before,
             "nan_price_imputed": nan_price_before - nan_price_after,
             "nan_price_remaining": nan_price_after,
+            "price_outliers_capped": price_outliers_capped,
+            "median_price_before_qa": median_price_before,
+            "median_price_after_qa": median_price_after,
             "nights_capped_max": nights_cap
         })
 
-    # Xuất báo cáo tổng hợp QA
     df_report = pd.DataFrame(qa_summary)
     report_path = "reports/qa_report.csv"
-    df_report.to_csv(report_path, index=False)
+    df_report.to_csv(report_path, index=False, encoding="utf-8")
     print(f"\n>>> ĐÃ TẠO BÁO CÁO QA THÀNH CÔNG: {report_path}")
     print(df_report.to_string())
 
 if __name__ == "__main__":
-    run_qa()
+    parser = argparse.ArgumentParser(description="Chạy kiểm định & làm sạch dữ liệu (QA)")
+    parser.add_argument("--config", default="configs/berlin.yaml", help="Đường dẫn tới file cấu hình YAML")
+    args = parser.parse_args()
+    run_qa(args.config)

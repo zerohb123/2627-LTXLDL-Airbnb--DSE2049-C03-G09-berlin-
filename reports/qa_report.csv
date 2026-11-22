@@ -1,5 +1,5 @@
-snapshot,initial_rows,dedup_dropped,nan_price_before,nan_price_imputed,nan_price_remaining,nights_capped_max
-2025-09-23,1000,0,42,42,0,365
-2025-12-27,1000,0,1000,1000,0,365
-2026-03-28,1000,0,1000,1000,0,365
-2026-06-26,1000,0,20,20,0,365
+snapshot,initial_rows,final_rows,dedup_dropped,nan_price_before,nan_price_imputed,nan_price_remaining,price_outliers_capped,median_price_before_qa,median_price_after_qa,nights_capped_max
+2025-09-23,1000,1000,0,42,42,0,0,132.0,132.0,365
+2025-12-27,1000,1000,0,1000,1000,0,0,,132.0,365
+2026-03-28,1000,1000,0,1000,1000,0,0,,132.0,365
+2026-06-26,1000,1000,0,20,20,0,0,177.5,178.0,365

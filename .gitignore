@@ -1,21 +1,17 @@
 # Tuyệt đối không đẩy dữ liệu thô lên Git
 data/raw/
-data/processed/
 data/clean/
-!data/samples/labeled_100.csv
 
 # Môi trường ảo Python
 venv/
 .venv/
 env/
 
-# Cache
+# Cache Python
 __pycache__/
 *.pyc
 
-# Khóa API
+# Khóa API & file hệ thống
 .env
-
-# File hệ thống
 .DS_Store
 Thumbs.db

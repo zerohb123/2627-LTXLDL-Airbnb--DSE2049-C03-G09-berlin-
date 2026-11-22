@@ -5,13 +5,13 @@ import argparse
 import subprocess
 
 PIPELINE_STEPS = [
-    ("1. Tải dữ liệu thô", "src/download.py"),
-    ("2. Kiểm tra & làm sạch dữ liệu", "src/check_data.py"),
-    ("3. Kiểm tra chất lượng dữ liệu (QA)", "src/qa.py"),
-    ("4. Tính toán chỉ số KPI", "src/kpi.py"),
-    ("5. Trực quan hóa dữ liệu (EDA)", "src/viz.py"),
-    ("6. Phân tích cảm xúc & khía cạnh (LLM)", "src/llm.py"),
-    ("7. Tổng hợp & vẽ biểu đồ kết quả LLM", "src/analyze_llm.py"),
+    ("1. Tải & lọc dữ liệu thô", "src/download.py"),
+    ("2. Kiểm tra & làm sạch dữ liệu (QA)", "src/qa.py"),
+    ("3. Trích xuất cảm xúc & khía cạnh (LLM)", "src/llm.py"),
+    ("4. Chạy phương pháp đối chứng (Baseline)", "src/baseline.py"),
+    ("5. Chấm điểm đối chứng trên nhãn tay (Evaluate)", "src/evaluate.py"),
+    ("6. Tính toán chỉ số KPI không gian - thời gian - LLM", "src/kpi.py"),
+    ("7. Trực quan hóa toàn bộ biểu đồ (Viz)", "src/viz.py"),
 ]
 
 def run_step(step_name, script_path, config_path):

@@ -30,4 +30,4 @@ llm:
   sample_size: 1000
   labeled_sample_size: 100
   aspects: ["vị trí", "sạch sẽ", "chủ nhà", "giá trị", "tiện nghi", "độ ồn", "an toàn"]
-  cache: "data/processed/llm_cache.json"
+  cache: "data/processed/llm_cache.jsonl"

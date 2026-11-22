@@ -1,0 +1,3 @@
+model,samples,sentiment_accuracy,sentiment_macro_f1,aspects_macro_f1
+LLM (Gemini),100,0.97,0.8255,0.8471
+Baseline (Lexicon),100,0.93,0.4045,0.7221

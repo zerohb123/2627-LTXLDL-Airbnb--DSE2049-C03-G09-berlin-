@@ -115,22 +115,21 @@ def download_and_filter(config_path="configs/berlin.yaml"):
         print(f"  [Cảnh báo] Không tải được GeoJSON từ {url_geojson}: {e}")
 
     # 5. Tách bộ dữ liệu mẫu LLM và nhãn tay (100 mẫu)
-    print("\n>>> 3. Đang tạo bộ dữ liệu mẫu gán nhãn tay...")
-    if 'Nhãn tay' in df_filter_review.columns:
+    print("\n>>> 3. Đang kiểm tra bộ dữ liệu mẫu gán nhãn tay...")
+    sample_path = "data/samples/labeled_100.csv"
+    
+    if os.path.exists(sample_path):
+        print(f"     [Bảo vệ dữ liệu] Đã tồn tại {sample_path}, bỏ qua bước tạo mới để không ghi đè nhãn tay!")
+    elif 'Nhãn tay' in df_filter_review.columns:
         labeled_ids = set(df_filter_review[df_filter_review['Nhãn tay'] == 'x'][review_id_col].astype(int))
-        # Lấy từ mốc snapshot đầu tiên
         first_rev_csv = f"data/processed/{snapshots[0]}_reviews.csv"
         df_first_rev = pd.read_csv(first_rev_csv)
         df_100 = df_first_rev[df_first_rev['id'].isin(labeled_ids)].copy()
         
-        # Thêm các cột nhãn trống để nhóm tự gán nhãn
         df_100['sentiment_true'] = ""
         df_100['aspects_true'] = ""
-        sample_path = "data/samples/labeled_100.csv"
-        df_100.to_csv(sample_path, index=False)
-        print(f"     Đã xuất file nhãn tay: {sample_path} ({len(df_100)} dòng)")
-
-    print("\n>>> HOÀN THÀNH TẢI VÀ LỌC DỮ LIỆU THÀNH CÔNG!")
+        df_100.to_csv(sample_path, index=False, encoding="utf-8")
+        print(f"     Đã xuất file nhãn tay trống: {sample_path} ({len(df_100)} dòng)")
 
 if __name__ == "__main__":
     import argparse
